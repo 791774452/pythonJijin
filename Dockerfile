@@ -2,8 +2,8 @@
 
 FROM 791774452/xiaolu:v1
 
-ADD . /app
-WORKDIR /app
+ADD . /opt
+WORKDIR /opt
 #
 #RUN  pip3 install --upgrade pip \
 #    && pip3 install -r requirements.txt
