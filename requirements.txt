@@ -1,0 +1,7 @@
+APScheduler==3.9.1
+baidu_aip==4.15.2
+beautifulsoup4==4.11.1
+interval==1.0.0
+matplotlib
+pandas==1.5.1
+requests==2.28.1
