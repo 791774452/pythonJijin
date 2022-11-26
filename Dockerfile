@@ -8,8 +8,8 @@ WORKDIR /app
 RUN  pip3 install --upgrade pip \
     && pip3 install -r requirements.txt
 
-COPY simhei.ttf /usr/local/lib/python3.9/site-packages/matplotlib/mpl-data/fonts
-COPY matplotlibrc /usr/local/lib/python3.9/site-packages/matplotlib/mpl-data/ttf
+COPY simhei.ttf /usr/local/lib/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/
+COPY matplotlibrc /usr/local/lib/python3.9/site-packages/matplotlib/mpl-data/
 
 CMD python3 main.py
 #CMD ["python3","main.py"]
