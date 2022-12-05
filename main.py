@@ -233,23 +233,23 @@ def TTMrequests():
     html = r.text
     soup = BeautifulSoup(html, 'lxml')
 
-    price_box = soup.find("div", "col-md-2 market-title-data-for-index-time")
+    # price_box = soup.find("div", "col-md-2 market-title-data-for-index-time")
     # price_box2=soup.find("div", "col-md-4 market-title-data-for-index")
     price_box2 = soup.find("div", attrs={'style': 'color: #25ac22'})
-    price = price_box.text.strip()
+    # price = price_box.text.strip()
     price2 = price_box2.text.strip()
-    desp = price + price2
+    # desp = price + price2
     # 沪深三百TTM
     r = requests.get('https://legulegu.com/stockdata/a-ttm-lyr')
     # logging.info(len(r.json()))
     # logging.info(r.text)
-    html = r.text
-    soup = BeautifulSoup(html, 'lxml')
+    # html = r.text
+    # soup = BeautifulSoup(html, 'lxml')
 
-    data = {
-        'TTM(滚动市盈率)等权平均': desp,
-        '沪深300滚动市盈率(TTM)等权平均': desp
-    }
+    # data = {
+    #     'TTM(滚动市盈率)等权平均': desp,
+    #     '沪深300滚动市盈率(TTM)等权平均': desp
+    # }
     return price2
     # logging.info(desp)
 
