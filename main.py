@@ -212,12 +212,12 @@ def get_fund_k_history(fund_code: str, pz: int = 30) -> pd.DataFrame:
             drop = float(datas[0]['JZZZL'])
     try:
         for stock in datas:
-            datas1 = float(stock['JZZZL'])
+            datass = float(stock['JZZZL'])
             # logging.info(datas1)
-            if datas1 > -0.01 or drop > 0:
+            if datass > -0.01 or drop > 0:
                 break
-            if datas1 < 0.01:
-                drop += datas1
+            if datass < 0.01:
+                drop += datass
                 continue
     except:
         pass
