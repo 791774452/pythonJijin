@@ -379,7 +379,7 @@ def get_data():
 
     Subject = '基金当前涨跌幅'
     # 显示发送人
-    sender_show = '小鹿'
+    sender_show = '1784306049@qq.com'
     # 显示收件人
     recipient_show = '791774452@qq.com'
     # 实际发给的收件人
