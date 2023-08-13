@@ -4,10 +4,9 @@ FROM python:3.9
 
 ADD . /app
 WORKDIR /app
-RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 
-RUN  pip3 install --upgrade pip \
-    && pip3 install -r requirements.txt
+RUN  pip install --upgrade pip -i https://pypi.tuna.tsinghua.edu.cn/simple\
+    && pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 COPY simhei.ttf /usr/local/lib/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/
 COPY matplotlibrc /usr/local/lib/python3.9/site-packages/matplotlib/mpl-data/
