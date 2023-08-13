@@ -4,6 +4,7 @@ FROM python:3.9
 
 ADD . /app
 WORKDIR /app
+RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 
 RUN  pip3 install --upgrade pip \
     && pip3 install -r requirements.txt
