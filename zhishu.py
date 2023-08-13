@@ -447,7 +447,7 @@ def getWorkday2():
 # ps -ef | grep fund
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    get_data()
+    # get_data()
     scheduler = BlockingScheduler(timezone="Asia/Shanghai")
     try:
         scheduler.add_job(getWorkday, 'cron', day_of_week='0-6', hour=14, minute=50)
