@@ -13,7 +13,7 @@ COPY matplotlibrc /usr/local/lib/python3.9/site-packages/matplotlib/mpl-data/
 
 RUN chmod +x /app/start.sh
 
-CMD ["/app/entrypoint.sh"]
+CMD ["/app/start.sh"]
 
 #CMD python3 main.py
 #CMD python3 zhishu.py
