@@ -226,7 +226,7 @@ def pe():
         # 股债利差估值百分位
         ashares_data = float(wechat_data['words_result'][3]['words'].strip('%'))
     except:
-        requests.post('https://sc.ftqq.com/SCT91472TNR7Z25Qoey6Qq1cfGlm92Rs4.send', data={'text': "我猜你的小饼干过期了！"})
+        # requests.post('https://sc.ftqq.com/SCT91472TNR7Z25Qoey6Qq1cfGlm92Rs4.send', data={'text': "我猜你的小饼干过期了！"})
         ashares_data = round(data['ashares_total_percent'] * 100, 2)
     ashares = ""
     zoom_0_10 = Interval(0, 10)
