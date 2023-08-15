@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cd /app
-git pull
+git pull origin master
 
 python3 zhishu.py
 
