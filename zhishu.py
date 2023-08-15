@@ -12,6 +12,7 @@ from email.mime.text import MIMEText
 from smtplib import SMTP_SSL
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import requests
 from aip import AipOcr  # baiduapi
@@ -136,22 +137,38 @@ def get_fund_k_history(fund_code: str, pz: int = 30) -> pd.DataFrame:
     }
     # 请求参数
     data = {}
-    url = 'http://26.push2his.eastmoney.com/api/qt/stock/kline/get?secid={secid}&ut=fa5fd1943c7b386f172d6893dbfba10b&fields1=f1%2Cf2%2Cf3%2Cf4%2Cf5%2Cf6&fields2=f51%2Cf52%2Cf53%2Cf54%2Cf55%2Cf56%2Cf57%2Cf58%2Cf59%2Cf60%2Cf61&klt=101&fqt=1&end=20500101&lmt=120&_=1691851583454'
+    url = 'http://26.push2his.eastmoney.com/api/qt/stock/kline/get?secid={secid}&ut=fa5fd1943c7b386f172d6893dbfba10b&fields1=f1%2Cf2%2Cf3%2Cf4%2Cf5%2Cf6&fields2=f51%2Cf52%2Cf53%2Cf54%2Cf55%2Cf56%2Cf57%2Cf58%2Cf59%2Cf60%2Cf61&klt=101&fqt=1&end=20500101&lmt=3600&_=1691851583454'
     secid_value = f'{fund_code}'
     url = url.replace('{secid}', secid_value)
     # print('fund_code'+fund_code)
     json_response = requests.get(
         url, headers=EastmoneyFundHeaders, data=data).json()
+    # 基金数据
+    fund_data = {}
     rows = []
     datas = json_response['data']['klines']
+    # 计算中位数
+    price_list = []
+    for stock in datas:
+        values = stock.split(",")  # 使用逗号分割字符串并将结果存储在列表中
+
+        price_list.append(float(values[2]))  # 获取索引为2的值，并将其转换为浮点数
+    # 获取当前价格
+    fund_data['price'] = price_list[-1]
+    price_list.sort()
+    chance = np.percentile(price_list, 30)
+    danger = np.percentile(price_list, 50)
+    # 30分位数
+    fund_data['chance'] = chance
+    fund_data['danger'] = danger
     # 涨跌幅
     drop = 0
     for stock in reversed(datas):
         values = stock.split(",")  # 使用逗号分割字符串并将结果存储在列表中
         extracted_value = float(values[8])  # 获取索引为8的值，并将其转换为浮点数
         if extracted_value > 0:
-            if drop ==0:
-                drop=extracted_value
+            if drop == 0:
+                drop = extracted_value
             break
         drop += extracted_value
     rows.append({
@@ -159,7 +176,8 @@ def get_fund_k_history(fund_code: str, pz: int = 30) -> pd.DataFrame:
         '基金名称': json_response['data']['name'],
         '涨连续跌幅': round(drop, 2)  # 保存两位小数
     })
-    return rows
+    fund_data['data'] = rows
+    return fund_data
 
 
 def TTMrequests():
@@ -325,64 +343,20 @@ def get_data():
     fund_codes = df.loc[:, ['基金代码']].values.flatten().tolist()  # 读所有行的title以及data列的值，这里需要嵌套列表
     # 调用函数获取基金历史净值数据
     data = []
+    data_dict = []
     columns = ['日期', '基金名称', '涨连续跌幅']
     for fund_code in list(set(fund_codes)):
         fund_data = get_fund_k_history(fund_code)
-        data.extend(fund_data)
+        data.extend(fund_data['data'])
+        data_dict.append(fund_data)
     # logging.info(data)
 
     ttm = pe()
 
-    # 读取data.json 文件
-    set_data = []
-    qmsg_data = []
-    filename = 'data.json'
+    for i in range(120):
+        check_trading_decision(data_dict)
 
-    # 保存需要购买的为json文件,
-    if os.path.exists(filename):
-        with open(filename) as file_obj:
-            names = json.load(file_obj)
-        if not names:
-            for get_data in data:
-                if get_data['涨连续跌幅'] <= -4:
-                    qmsg_data.append(get_data['基金名称'])
-                    set_data.append(get_data)
-        else:
-            for get_data in data:
-                result = -1
-                if get_data['涨连续跌幅'] <= -4 and get_data['涨连续跌幅'] >= -8:
-                    for range in names:
-                        if range['基金名称'] == get_data['基金名称']:
-                            result = 1
-                    if result == -1:
-                        # logging.info(get_data['基金名称'])
-                        qmsg_data.append(get_data['基金名称'])
-                    set_data.append(get_data)
-                if get_data['涨连续跌幅'] <= -8:
-                    for range in names:
-                        if range['基金名称'] == get_data['基金名称']:
-                            result = 1
-                    if result == -1:
-                        # logging.info(get_data['基金名称'])
-                        qmsg_data.append(get_data['基金名称'])
-                    set_data.append(get_data)
-        os.remove('data.json')
-    else:
-        for get_data in data:
-            if get_data['涨连续跌幅'] <= -4:
-                qmsg_data.append(get_data['基金名称'])
-                set_data.append(get_data)
-
-    with open(filename, 'w') as file_obj:
-        json.dump(set_data, file_obj)
-    # 方糖推送需要购买的
-    req_data1 = {
-        'text': '今天需要购买的基金',
-        'desp': str(qmsg_data)
-    }
-    if qmsg_data:
-        logging.info(req_data1)
-        requests.post('https://sc.ftqq.com/SCT91472TNR7Z25Qoey6Qq1cfGlm92Rs4.send', data=req_data1)
+    # 画图
     df = pd.DataFrame(data)
     df['涨连续跌幅'] = pd.to_numeric(df['涨连续跌幅'], errors='coerce')
     df['日期'] = pd.to_datetime(df['日期'], errors='coerce')
@@ -415,9 +389,92 @@ def get_data():
     sendMail(message, Subject, sender_show, recipient_show, to_addrs)
 
 
+def check_trading_decision(list_dict):
+    # 读取data.json 文件
+    set_data = {}
+    qmsg_data = {'买入': [], '卖出': []}
+    filename = 'data.json'
+    # 买入提醒百分比
+    buy_percentage = 0.04
+    # 卖出提醒百分比
+    sell_percentage = 0.06
+    # 保存需要购买的为json文件,
+    if os.path.exists(filename):
+        with open(filename) as file_obj:
+            set_data = json.load(file_obj)
+        if not set_data:
+            print()
+        else:
+            for data_dict in list_dict:
+                # 当前价格
+                current_price = data_dict['price']
+                # 买入分界线
+                buy_threshold = data_dict['chance']
+                # 卖出分界线
+                sell_threshold = data_dict['danger']
+                standard = buy_threshold
+
+                name = data_dict['data'][0]['基金名称']
+                if name in set_data:
+                    standard = set_data[name]['基准价']
+
+                if current_price <= buy_threshold:
+                    target_price = standard - (standard * buy_percentage)
+                    if current_price <= target_price:
+                        qmsg_data['买入'].append(name)
+                        set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold, '基准价': target_price}
+                        break
+                    target_price = standard + (standard * buy_percentage)
+                    if current_price >= target_price:
+                        set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold, '基准价': target_price}
+                elif current_price >= sell_threshold:
+                    if sell_threshold > standard:
+                        standard = sell_threshold
+                    target_price = standard + (standard * sell_percentage)
+                    if current_price >= target_price:
+                        qmsg_data['卖出'].append(name)
+                        set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold, '基准价': target_price}
+        os.remove('data.json')
+    else:
+        for data_dict in list_dict:
+            # 当前价格
+            current_price = data_dict['price']
+            # 买入分界线
+            buy_threshold = data_dict['chance']
+            # 卖出分界线
+            sell_threshold = data_dict['danger']
+
+            name = data_dict['data'][0]['基金名称']
+            if current_price <= buy_threshold:
+                target_price = buy_threshold - (buy_threshold * buy_percentage)
+                if current_price <= target_price:
+                    qmsg_data['买入'].append(name)
+                    set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold, '基准价': target_price}
+                    break
+                target_price = buy_threshold + (buy_threshold * buy_percentage)
+                if current_price >= target_price:
+                    set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold, '基准价': target_price}
+            elif current_price >= sell_threshold:
+                target_price = sell_threshold + (sell_threshold * sell_percentage)
+                if current_price >= target_price:
+                    qmsg_data['卖出'].append(name)
+                    set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold, '基准价': target_price}
+
+    with open(filename, 'w', encoding='utf-8') as file_obj:
+        json.dump(set_data, file_obj, ensure_ascii=False)
+    # 方糖推送需要购买的
+    req_data1 = {
+        'text': '今天需要操作的基金',
+        'desp': str(qmsg_data)
+    }
+    if qmsg_data:
+        logging.info(req_data1)
+        requests.post('https://sc.ftqq.com/SCT91472TNR7Z25Qoey6Qq1cfGlm92Rs4.send', data=req_data1)
+
+
 def getWorkday():
     date = time.strftime('%Y-%m-%d', time.localtime())
-    url = "http://timor.tech/api/holiday/info/"+date
+    url = "http://timor.tech/api/holiday/info/" + date
     payload = {}
     headers = {
         'Cookie': '',
@@ -447,7 +504,7 @@ def getWorkday2():
 # ps -ef | grep fund
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    # get_data()
+    get_data()
     scheduler = BlockingScheduler(timezone="Asia/Shanghai")
     try:
         scheduler.add_job(getWorkday, 'cron', day_of_week='0-6', hour=14, minute=50)
