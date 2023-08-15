@@ -352,9 +352,8 @@ def get_data():
     # logging.info(data)
 
     ttm = pe()
-
-    for i in range(120):
-        check_trading_decision(data_dict)
+    # 4% 提醒
+    check_trading_decision(data_dict)
 
     # 画图
     df = pd.DataFrame(data)
