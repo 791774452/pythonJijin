@@ -11,7 +11,7 @@ def method_name():
     global datas, stock, values, drop, extracted_value
 
     # 雪球估值
-    url = "https://fund.xueqiu.com/index_eva/pe_history/SH000688?day=all&_s=43d632"
+    url = "https://fund.xueqiu.com/index_eva/pe_history/SH000688?day=all"
 
     payload = {}
     headers = {
