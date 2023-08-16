@@ -466,7 +466,7 @@ def check_trading_decision(list_dict):
         'text': '今天需要操作的基金',
         'desp': str(qmsg_data)
     }
-    if qmsg_data:
+    if len(qmsg_data['买入']) + len(qmsg_data['卖出']) > 0:
         logging.info(req_data1)
         requests.post('https://sc.ftqq.com/SCT91472TNR7Z25Qoey6Qq1cfGlm92Rs4.send', data=req_data1)
 
