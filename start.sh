@@ -3,7 +3,7 @@
 cd /app
 git pull origin master
 
-python3 zhishu.py
+python3 zhishu_tiantian.py
 
 git add data.json
 git commit -m "更新基准价"
