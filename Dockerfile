@@ -2,6 +2,13 @@
 
 FROM python:3.9
 
+# 拷贝SSH配置和密钥到容器
+COPY ~/.ssh /root/.ssh
+
+# 设置权限
+RUN chmod 700 /root/.ssh && \
+    chmod 600 /root/.ssh/id_rsa
+
 ADD . /app
 WORKDIR /app
 
