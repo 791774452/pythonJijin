@@ -28,29 +28,32 @@ def method_name():
     print(response.text)
 
     EastmoneyFundHeaders = {
+        'Cookie': 's=ab1byus95u; cookiesu=701689840624936; device_id=5d59b3de390853c8527c504b48b53e59; xq_a_token=370309a4cfdfe4bc2704623d41715a1159be59eb; xqat=370309a4cfdfe4bc2704623d41715a1159be59eb; xq_r_token=39f1ce2c9cbdf041c8e7e72471a441c2aa4879b2; xq_id_token=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ1aWQiOi0xLCJpc3MiOiJ1YyIsImV4cCI6MTY5NDIxOTc3NywiY3RtIjoxNjkxODg4Mjk3MzI5LCJjaWQiOiJkOWQwbjRBWnVwIn0.VJWrwjUhY6Y6kmB0OI-9A4S_iwnElh82nt7Biwht1amhllvkKamnaPxDRdn80oPspUUiMbeeu5e-8IzJYzYKthrb64k7MnCvX53ScuLPBjrXN-xlDdfHK3I4j3AYHIOBt-FQTKkXA-sg6x8VaX-Fw1r3kLwVY2erzRZsFJfHZynT9wW0UjhZncDwgRfeoJKRZZg4HaxPPLMKHJ8gPp2QfACPpJ634prO8z5Apif9hCN4wCE-bCkc-yA15lAbFVzn6aQc-NbdeKfgaBnk-J_DL1frMM61dc7UnmX43TzWtOF-3ArRyaYf2mCDFboU8Tn2E9xlOHwmliu-iaPMfcHV8Q; u=471691888334808; is_overseas=0',
         'User-Agent': 'EMProjJijin/6.2.8 (iPhone; iOS 13.6; Scale/2.00)'
     }
     # 请求参数
     data = {}
     url = 'https://stock.xueqiu.com/v5/stock/chart/kline.json?symbol={secid}&begin=1692249846430&period=day&type=before&count=-3600&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance'
+    nmae_url='https://xueqiu.com/query/v1/suggest_stock.json?q={secid}'
     secid_value = 'SH000688'
     url = url.replace('{secid}', secid_value)
+    nmae_url = nmae_url.replace('{secid}', secid_value)
     json_response = requests.get(
         url, headers=EastmoneyFundHeaders, data=data).json()
+    name = requests.get(
+        nmae_url, headers=EastmoneyFundHeaders, data=data).json()['data'][0]['query']
     rows = []
     columns = ['日期', '今开', '当前', '最高', '最高', '最低', '成交量', '成交额', '振幅', '涨跌', '涨跌值', '无']
     if json_response is None:
         print(1)
-    datas = json_response['data']['klines']
+    datas = json_response['data']['item']
     if len(datas) == 0:
         print(2)
-    print(json_response['data']['name'])
+    print(name)
     # 计算中位数
     zhong = []
     for stock in reversed(datas):
-        values = stock.split(",")  # 使用逗号分割字符串并将结果存储在列表中
-
-        zhong.append(float(values[2]))  # 获取索引为2的值，并将其转换为浮点数
+        zhong.append(float(stock[5]))  # 获取索引为2的值，并将其转换为浮点数
     zhong.sort()
     median = statistics.median(zhong)
     print('70分位数：' + np.percentile(zhong, 70).__str__())
@@ -61,12 +64,9 @@ def method_name():
     # 计算中位数
     price_list = []
     for stock in datas:
-        values = stock.split(",")  # 使用逗号分割字符串并将结果存储在列表中
-
-        price_list.append(float(values[2]))  # 获取索引为2的值，并将其转换为浮点数
-
-        # 基金数据
-        fund_data = {}
+        price_list.append(float(stock[5]))  # 获取索引为2的值，并将其转换为浮点数
+    # 基金数据
+    fund_data = {}
     # 获取当前价格
     fund_data['price'] = price_list[-1]
     price_list.sort()
@@ -78,8 +78,7 @@ def method_name():
     # 涨跌幅
     drop = 0
     for stock in reversed(datas):
-        values = stock.split(",")  # 使用逗号分割字符串并将结果存储在列表中
-        extracted_value = float(values[8])  # 获取索引为8的值，并将其转换为浮点数
+        extracted_value = float(stock[7])  # 获取索引为8的值，并将其转换为浮点数
         if extracted_value > 0:
             if drop == 0:
                 drop = extracted_value
@@ -87,7 +86,7 @@ def method_name():
         drop += extracted_value
     rows.append({
         '日期': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
-        '基金名称': json_response['data']['name'],
+        '基金名称': name,
         '涨连续跌幅': round(drop, 2)  # 保存两位小数
     })
     fund_data['data'] = rows
@@ -97,8 +96,7 @@ def method_name():
 
     drop = 0
     for stock in reversed(datas):
-        values = stock.split(",")  # 使用逗号分割字符串并将结果存储在列表中
-        extracted_value = float(values[8])  # 获取索引为8的值，并将其转换为浮点数
+        extracted_value = float(stock[7])  # 获取索引为8的值，并将其转换为浮点数
         if extracted_value > 0:
             break
         drop += extracted_value
