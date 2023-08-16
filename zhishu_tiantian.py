@@ -131,60 +131,51 @@ def sendMail(message, Subject, sender_show, recipient_show, to_addrs, cc_show=''
 
 
 def get_fund_k_history(fund_code: str, pz: int = 30) -> pd.DataFrame:
-    # 雪球估值
-    guzhi_url = "https://fund.xueqiu.com/index_eva/pe_history/{secid}?day=all"
-
-    headers = {
-        'dj-version': '7.18',
-        'dj-signature': '3f9eb0c71d613eaefd1aa65772d7f664372d457e',
-        'dj-device-id': '1',
-        'dj-timestamp': '1692164285222',
-        'dj-client': 'iOS',
-        'User-Agent': 'Apifox/1.0.0 (https://www.apifox.cn)'
-    }
-
     # 请求头
     EastmoneyFundHeaders = {
-        'Cookie': 's=ab1byus95u; cookiesu=701689840624936; device_id=5d59b3de390853c8527c504b48b53e59; xq_a_token=370309a4cfdfe4bc2704623d41715a1159be59eb; xqat=370309a4cfdfe4bc2704623d41715a1159be59eb; xq_r_token=39f1ce2c9cbdf041c8e7e72471a441c2aa4879b2; xq_id_token=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ1aWQiOi0xLCJpc3MiOiJ1YyIsImV4cCI6MTY5NDIxOTc3NywiY3RtIjoxNjkxODg4Mjk3MzI5LCJjaWQiOiJkOWQwbjRBWnVwIn0.VJWrwjUhY6Y6kmB0OI-9A4S_iwnElh82nt7Biwht1amhllvkKamnaPxDRdn80oPspUUiMbeeu5e-8IzJYzYKthrb64k7MnCvX53ScuLPBjrXN-xlDdfHK3I4j3AYHIOBt-FQTKkXA-sg6x8VaX-Fw1r3kLwVY2erzRZsFJfHZynT9wW0UjhZncDwgRfeoJKRZZg4HaxPPLMKHJ8gPp2QfACPpJ634prO8z5Apif9hCN4wCE-bCkc-yA15lAbFVzn6aQc-NbdeKfgaBnk-J_DL1frMM61dc7UnmX43TzWtOF-3ArRyaYf2mCDFboU8Tn2E9xlOHwmliu-iaPMfcHV8Q; u=471691888334808; is_overseas=0',
         'User-Agent': 'EMProjJijin/6.2.8 (iPhone; iOS 13.6; Scale/2.00)'
     }
     # 请求参数
     data = {}
-    url = 'https://stock.xueqiu.com/v5/stock/chart/kline.json?symbol={secid}&begin=1692249846430&period=day&type=before&count=-3600&indicator=kline,pe,pb,ps,pcf,market_capital,agt,ggt,balance'
-    nmae_url = 'https://xueqiu.com/query/v1/suggest_stock.json?q={secid}'
+    url = 'http://26.push2his.eastmoney.com/api/qt/stock/kline/get?secid={secid}&ut=fa5fd1943c7b386f172d6893dbfba10b&fields1=f1%2Cf2%2Cf3%2Cf4%2Cf5%2Cf6&fields2=f51%2Cf52%2Cf53%2Cf54%2Cf55%2Cf56%2Cf57%2Cf58%2Cf59%2Cf60%2Cf61&klt=101&fqt=1&end=20500101&lmt=3600&_=1691851583454'
+    guzhi_url='https://fundcomapi.tiantianfunds.com/mm/FundIndex/indexValueTrend?indexCode={secid}&range=10n'
     secid_value = f'{fund_code}'
     url = url.replace('{secid}', secid_value)
-    nmae_url = nmae_url.replace('{secid}', secid_value)
-    guzhi_url = guzhi_url.replace('{secid}', secid_value)
-    pe_obj = requests.request("GET", guzhi_url, headers=headers).json()['data']
+    guzhi_url = guzhi_url.replace('{secid}', secid_value.split(".")[1])
+    # print('fund_code'+fund_code)
     json_response = requests.get(
         url, headers=EastmoneyFundHeaders, data=data).json()
-    name = requests.get(
-        nmae_url, headers=EastmoneyFundHeaders, data=data).json()['data'][0]['query']
+    guzhi_data = requests.get(guzhi_url).json()['data']
     # 基金数据
     fund_data = {}
     rows = []
-    datas = json_response['data']['item']
+    datas = json_response['data']['klines']
     # 计算中位数
     price_list = []
     for stock in datas:
-        price_list.append(float(stock[5]))
-
+        values = stock.split(",")  # 使用逗号分割字符串并将结果存储在列表中
+        price_list.append(float(values[2]))  # 获取索引为2的值，并将其转换为浮点数
     # 获取当前价格
     fund_data['price'] = price_list[-1]
+    # 计算pe分位数
+    pe_lsit=[]
+    for stock in guzhi_data:
+        pe_lsit.append(float(stock['PETTM']))
+    current_pe=pe_lsit[-1]
+    pe_lsit.sort()
     price_list.sort()
-    chance = np.percentile(price_list, 30)
-    danger = np.percentile(price_list, 50)
+    chance = np.percentile(pe_lsit, 30)
+    danger = np.percentile(pe_lsit, 50)
     # pe30分位数
-    fund_data['standard'] = chance
-    fund_data['chance'] = pe_obj['horizontal_lines'][0]['line_value']
-    fund_data['current_pe'] = pe_obj['index_eva_pe_growths'][-1]['pe']
-    fund_data['danger'] = pe_obj['horizontal_lines'][1]['line_value']
-    fund_data['name'] = name
+    fund_data['standard'] = np.percentile(price_list, 30) #指数30分位
+    fund_data['chance'] = chance
+    fund_data['current_pe'] = current_pe
+    fund_data['danger'] = danger
     # 涨跌幅
     drop = 0
     for stock in reversed(datas):
-        extracted_value = float(stock[7])
+        values = stock.split(",")  # 使用逗号分割字符串并将结果存储在列表中
+        extracted_value = float(values[8])  # 获取索引为8的值，并将其转换为浮点数
         if extracted_value > 0:
             if drop == 0:
                 drop = extracted_value
@@ -192,7 +183,7 @@ def get_fund_k_history(fund_code: str, pz: int = 30) -> pd.DataFrame:
         drop += extracted_value
     rows.append({
         '日期': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
-        '基金名称': name,
+        '基金名称': json_response['data']['name'],
         '涨连续跌幅': round(drop, 2)  # 保存两位小数
     })
     fund_data['data'] = rows
@@ -373,13 +364,6 @@ def get_data():
     ttm = pe()
     # 4% 提醒
     check_trading_decision(data_dict)
-    check_trading_decision(data_dict)
-    check_trading_decision(data_dict)
-    check_trading_decision(data_dict)
-    check_trading_decision(data_dict)
-    check_trading_decision(data_dict)
-    check_trading_decision(data_dict)
-    check_trading_decision(data_dict)
 
     # 画图
     df = pd.DataFrame(data)
@@ -451,12 +435,12 @@ def check_trading_decision(list_dict):
                         qmsg_data['买入'].append(name)
                         set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold,
                                           '基准价': current_price - (current_price * buy_percentage)}
-                        break
+                        continue
                     target_price = standard + (standard * buy_percentage)
                     if current_price >= target_price:
                         set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold,
                                           '基准价': current_price + (current_price * buy_percentage)}
-                        break
+                        continue
                     # 基准价不变
                     set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold, '基准价': standard}
                 elif current_pe >= sell_threshold:
@@ -467,7 +451,7 @@ def check_trading_decision(list_dict):
                         # 卖出这基准价位30分位值
                         set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold,
                                           '基准价': current_price + (current_price * buy_percentage)}
-                        break
+                        continue
                     # 基准价不变
                     set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold, '基准价': standard}
     else:
