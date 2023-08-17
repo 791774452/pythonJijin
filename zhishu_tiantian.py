@@ -436,7 +436,7 @@ def check_trading_decision(list_dict):
                         set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold,
                                           '基准价': current_price - (current_price * buy_percentage)}
                         continue
-                    target_price = standard + (standard * buy_percentage)
+                    target_price = standard + (standard * (buy_percentage+0.01))
                     if current_price >= target_price:
                         set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold,
                                           '基准价': current_price + (current_price * buy_percentage)}
