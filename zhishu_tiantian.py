@@ -3,6 +3,7 @@ import logging
 import os
 import random
 import re
+import subprocess
 import time
 import urllib
 import urllib.request
@@ -478,7 +479,14 @@ def check_trading_decision(list_dict):
     if len(qmsg_data['买入']) + len(qmsg_data['卖出']) > 0:
         logging.info(req_data1)
         requests.post('https://sc.ftqq.com/SCT91472TNR7Z25Qoey6Qq1cfGlm92Rs4.send', data=req_data1)
-
+def git_commands():
+    try:
+        subprocess.run(['git', 'add', 'data.json'])
+        subprocess.run(['git', 'commit', '-m', '更新基准价'])
+        subprocess.run(['git', 'push', 'origin', 'master'])
+        print("Git commands executed successfully.")
+    except subprocess.CalledProcessError as e:
+        print("Git commands execution failed. Error:", e)
 
 def getWorkday():
     date = time.strftime('%Y-%m-%d', time.localtime())
@@ -503,6 +511,8 @@ def getWorkday2():
     x = data.json()["type"]["type"]
     if x == 0:
         get_data()
+        # 调用函数执行git命令
+        git_commands()
     else:
         logging.info("今天不是工作日")
         logging.info("今天不是工作日")
@@ -512,7 +522,7 @@ def getWorkday2():
 # ps -ef | grep fund
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    get_data()
+    # get_data()
     scheduler = BlockingScheduler(timezone="Asia/Shanghai")
     try:
         scheduler.add_job(getWorkday, 'cron', day_of_week='0-6', hour=14, minute=50)
