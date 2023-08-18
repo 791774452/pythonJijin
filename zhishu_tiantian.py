@@ -521,7 +521,12 @@ def getWorkday2():
 # nohup python3 fund.py >fund.out 2>&1 &
 # ps -ef | grep fund
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
+    # 创建日志对象
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+
+    # 配置基本的日志输出格式
+    logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s')
     get_data()
     git_commands()
     scheduler = BlockingScheduler(timezone="Asia/Shanghai")
