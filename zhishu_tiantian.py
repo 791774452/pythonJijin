@@ -483,7 +483,7 @@ def check_trading_decision(list_dict):
     }
     if len(qmsg_data['买入']) + len(qmsg_data['卖出']) > 0:
         logging.info(req_data1)
-        url = "https://api2.pushdeer.com/message/push?pushkey=PDU1614T3Ckd0hassDatassOicfxh9YPr3uMhzRT&text=" + output_str
+        url = "https://api2.pushdeer.com/message/push?pushkey=PDU1614T3Ckd0hassDatassOicfxh9YPr3uMhzRT&text=**今天需要操作的基金**&desp=" + output_str
         requests.request("GET", url, )
         # requests.post('https://sc.ftqq.com/SCT91472TNR7Z25Qoey6Qq1cfGlm92Rs4.send', data=req_data1)
 def git_commands():
