@@ -484,9 +484,9 @@ def git_commands():
         subprocess.run(['git', 'add', 'data.json'])
         subprocess.run(['git', 'commit', '-m', '更新基准价'])
         subprocess.run(['git', 'push', 'origin', 'master'])
-        print("Git commands executed successfully.")
+        logging.info("Git 命令执行成功。")
     except subprocess.CalledProcessError as e:
-        print("Git commands execution failed. Error:", e)
+        logging.error("Git 命令执行失败。错误:", e)
 
 def getWorkday():
     date = time.strftime('%Y-%m-%d', time.localtime())
