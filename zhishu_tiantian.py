@@ -472,9 +472,14 @@ def check_trading_decision(list_dict):
     with open(filename, 'w', encoding='utf-8') as file_obj:
         json.dump(set_data, file_obj, ensure_ascii=False)
     # 方糖推送需要购买的
+    output_str = ""
+    if qmsg_data['买入']:
+        output_str += "**买入:** " + ", ".join(qmsg_data['买入']) + "\n\n"
+    if qmsg_data['卖出']:
+        output_str += "**卖出:** " + ", ".join(qmsg_data['卖出']) + "\n"
     req_data1 = {
         'text': '今天需要操作的基金',
-        'desp': str(qmsg_data)
+        'desp': str(output_str)
     }
     if len(qmsg_data['买入']) + len(qmsg_data['卖出']) > 0:
         logging.info(req_data1)
