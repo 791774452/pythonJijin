@@ -515,21 +515,9 @@ def getWorkday():
     x = data.json()["type"]["type"]
     if x == 0:
         get_data()
-    else:
-        logging.info("今天不是工作日")
-
-
-def getWorkday2():
-    date = time.strftime('%Y-%m-%d', time.localtime())
-    data = requests.get("http://timor.tech/api/holiday/info/" + date)
-    # logging.info(date.json())
-    x = data.json()["type"]["type"]
-    if x == 0:
-        get_data()
         # 调用函数执行git命令
         git_commands()
     else:
-        logging.info("今天不是工作日")
         logging.info("今天不是工作日")
 
 
@@ -546,7 +534,7 @@ if __name__ == "__main__":
     # git_commands()
     scheduler = BlockingScheduler(timezone="Asia/Shanghai")
     try:
-        scheduler.add_job(getWorkday, 'cron', day_of_week='0-6', hour=15, minute=4)
+        scheduler.add_job(getWorkday, 'cron', day_of_week='0-6', hour=15, minute=10)
         # scheduler.add_job(getWorkday, 'interval', seconds=5)
         # scheduler.add_job(getWorkday, 'interval', seconds=30)
         scheduler.start()
