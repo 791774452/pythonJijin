@@ -494,6 +494,13 @@ def git_commands():
         logging.info("Git 命令执行成功。")
     except subprocess.CalledProcessError as e:
         logging.error("Git 命令执行失败。错误:", e)
+        url = "https://api2.pushdeer.com/message/push"
+        req_data1 = {
+            'pushkey': 'PDU1614T3Ckd0hassDatassOicfxh9YPr3uMhzRT',
+            'text': '# Git 命令执行失败。',
+            'desp': str(e)
+        }
+        requests.post(url, data=req_data1).json()
 
 def getWorkday():
     date = time.strftime('%Y-%m-%d', time.localtime())
@@ -538,7 +545,7 @@ if __name__ == "__main__":
     # git_commands()
     scheduler = BlockingScheduler(timezone="Asia/Shanghai")
     try:
-        scheduler.add_job(getWorkday, 'cron', day_of_week='0-6', hour=14, minute=50)
+        scheduler.add_job(getWorkday, 'cron', day_of_week='0-6', hour=14, minute=59)
         # scheduler.add_job(getWorkday, 'interval', seconds=5)
         # scheduler.add_job(getWorkday, 'interval', seconds=30)
         scheduler.start()
