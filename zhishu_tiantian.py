@@ -487,6 +487,7 @@ def check_trading_decision(list_dict):
         requests.post('https://api2.pushdeer.com/message/push', data=req_data1)
         requests.post('https://sc.ftqq.com/SCT91472TNR7Z25Qoey6Qq1cfGlm92Rs4.send', data=req_data1)
 def git_commands():
+    logging.info("Git 命令开始执行")
     try:
         subprocess.run(['git', 'add', 'data.json'])
         subprocess.run(['git', 'commit', '-m', '更新基准价'])
@@ -545,7 +546,7 @@ if __name__ == "__main__":
     # git_commands()
     scheduler = BlockingScheduler(timezone="Asia/Shanghai")
     try:
-        scheduler.add_job(getWorkday, 'cron', day_of_week='0-6', hour=14, minute=59)
+        scheduler.add_job(getWorkday, 'cron', day_of_week='0-6', hour=15, minute=04)
         # scheduler.add_job(getWorkday, 'interval', seconds=5)
         # scheduler.add_job(getWorkday, 'interval', seconds=30)
         scheduler.start()
