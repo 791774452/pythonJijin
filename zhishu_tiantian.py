@@ -534,7 +534,7 @@ if __name__ == "__main__":
     # git_commands()
     scheduler = BlockingScheduler(timezone="Asia/Shanghai")
     try:
-        scheduler.add_job(getWorkday, 'cron', day_of_week='0-6', hour=14, minute=57)
+        scheduler.add_job(getWorkday, 'cron', day_of_week='0-6', hour=14, minute=50)
         # scheduler.add_job(getWorkday, 'interval', seconds=5)
         # scheduler.add_job(getWorkday, 'interval', seconds=30)
         scheduler.start()
