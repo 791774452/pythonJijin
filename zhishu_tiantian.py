@@ -434,27 +434,27 @@ def check_trading_decision(list_dict):
                     target_price = standard - (standard * buy_percentage)
                     if current_price <= target_price:
                         qmsg_data['买入'].append(name)
-                        set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold,
+                        set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold, '目前分位': current_pe,
                                           '基准价': current_price - (current_price * buy_percentage)}
                         continue
                     target_price = standard + (standard * (buy_percentage+0.01))
                     if current_price >= target_price:
-                        set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold,
+                        set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold, '目前分位': current_pe,
                                           '基准价': current_price + (current_price * buy_percentage)}
                         continue
                     # 基准价不变
-                    set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold, '基准价': standard}
+                    set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold, '目前分位': current_pe, '基准价': standard}
                 elif current_pe >= sell_threshold:
 
                     target_price = standard + (standard * sell_percentage)
                     if current_price >= target_price:
                         qmsg_data['卖出'].append(name)
                         # 卖出这基准价位30分位值
-                        set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold,
+                        set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold, '目前分位': current_pe,
                                           '基准价': current_price + (current_price * buy_percentage)}
                         continue
                     # 基准价不变
-                    set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold, '基准价': standard}
+                    set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold, '目前分位': current_pe, '基准价': standard}
     else:
         for data_dict in list_dict:
             # 基准价格30分位
@@ -467,7 +467,7 @@ def check_trading_decision(list_dict):
             sell_threshold = data_dict['danger']
 
             name = data_dict['data'][0]['基金名称']
-            set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold, '基准价': standard_price}
+            set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold, '目前分位': current_pe, '基准价': standard_price}
 
     with open(filename, 'w', encoding='utf-8') as file_obj:
         json.dump(set_data, file_obj, ensure_ascii=False)
