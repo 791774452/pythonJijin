@@ -470,7 +470,7 @@ def check_trading_decision(list_dict):
             set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold, '目前分位': current_pe, '基准价': standard_price}
 
     with open(filename, 'w', encoding='utf-8') as file_obj:
-        json.dump(set_data, file_obj, ensure_ascii=False)
+        json.dump(set_data, file_obj, ensure_ascii=False, indent=2)
     # 方糖推送需要购买的
     output_str = ""
     if qmsg_data['买入']:
@@ -531,7 +531,7 @@ if __name__ == "__main__":
     # 配置基本的日志输出格式
     logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s')
     # get_data()
-    # git_commands()
+    # getWorkday()
     scheduler = BlockingScheduler(timezone="Asia/Shanghai")
     try:
         scheduler.add_job(getWorkday, 'cron', day_of_week='0-6', hour=14, minute=50)
