@@ -139,7 +139,7 @@ def get_fund_k_history(fund_code: str, pz: int = 30) -> pd.DataFrame:
     # 请求参数
     data = {}
     url = 'http://26.push2his.eastmoney.com/api/qt/stock/kline/get?secid={secid}&ut=fa5fd1943c7b386f172d6893dbfba10b&fields1=f1%2Cf2%2Cf3%2Cf4%2Cf5%2Cf6&fields2=f51%2Cf52%2Cf53%2Cf54%2Cf55%2Cf56%2Cf57%2Cf58%2Cf59%2Cf60%2Cf61&klt=101&fqt=1&end=20500101&lmt=3600&_=1691851583454'
-    guzhi_url='https://fundcomapi.tiantianfunds.com/mm/FundIndex/indexValueTrend?indexCode={secid}&range=10n'
+    guzhi_url = 'https://fundcomapi.tiantianfunds.com/mm/FundIndex/indexValueTrend?indexCode={secid}&range=10n'
     secid_value = f'{fund_code}'
     url = url.replace('{secid}', secid_value)
     guzhi_url = guzhi_url.replace('{secid}', secid_value.split(".")[1])
@@ -159,16 +159,16 @@ def get_fund_k_history(fund_code: str, pz: int = 30) -> pd.DataFrame:
     # 获取当前价格
     fund_data['price'] = price_list[-1]
     # 计算pe分位数
-    pe_lsit=[]
+    pe_lsit = []
     for stock in guzhi_data:
         pe_lsit.append(float(stock['PETTM']))
-    current_pe=pe_lsit[-1]
+    current_pe = pe_lsit[-1]
     pe_lsit.sort()
     price_list.sort()
     chance = np.percentile(pe_lsit, 30)
     danger = np.percentile(pe_lsit, 50)
     # pe30分位数
-    fund_data['standard'] = np.percentile(price_list, 30) #指数30分位
+    fund_data['standard'] = np.percentile(price_list, 30)  # 指数30分位
     fund_data['chance'] = chance
     fund_data['current_pe'] = current_pe
     fund_data['danger'] = danger
@@ -437,13 +437,14 @@ def check_trading_decision(list_dict):
                         set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold, '目前分位': current_pe,
                                           '基准价': current_price - (current_price * buy_percentage)}
                         continue
-                    target_price = standard + (standard * (buy_percentage+0.01))
+                    target_price = standard + (standard * (buy_percentage + 0.01))
                     if current_price >= target_price:
                         set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold, '目前分位': current_pe,
                                           '基准价': current_price + (current_price * buy_percentage)}
                         continue
                     # 基准价不变
-                    set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold, '目前分位': current_pe, '基准价': standard}
+                    set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold, '目前分位': current_pe,
+                                      '基准价': standard}
                 elif current_pe >= sell_threshold:
 
                     target_price = standard + (standard * sell_percentage)
@@ -454,7 +455,8 @@ def check_trading_decision(list_dict):
                                           '基准价': current_price + (current_price * buy_percentage)}
                         continue
                     # 基准价不变
-                    set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold, '目前分位': current_pe, '基准价': standard}
+                    set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold, '目前分位': current_pe,
+                                      '基准价': standard}
     else:
         for data_dict in list_dict:
             # 基准价格30分位
@@ -467,10 +469,11 @@ def check_trading_decision(list_dict):
             sell_threshold = data_dict['danger']
 
             name = data_dict['data'][0]['基金名称']
-            set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold, '目前分位': current_pe, '基准价': standard_price}
+            set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold, '目前分位': current_pe,
+                              '基准价': standard_price}
 
     with open(filename, 'w', encoding='utf-8') as file_obj:
-        json.dump(set_data, file_obj, ensure_ascii=False, indent=2)
+        json.dump(set_data, file_obj, ensure_ascii=False, indent=2, sort_keys=True)
     # 方糖推送需要购买的
     output_str = ""
     if qmsg_data['买入']:
@@ -486,6 +489,8 @@ def check_trading_decision(list_dict):
         logging.info(req_data1)
         requests.post('https://api2.pushdeer.com/message/push', data=req_data1)
         requests.post('https://sc.ftqq.com/SCT91472TNR7Z25Qoey6Qq1cfGlm92Rs4.send', data=req_data1)
+
+
 def git_commands():
     logging.info("Git 命令开始执行")
     try:
@@ -502,6 +507,7 @@ def git_commands():
             'desp': str(e)
         }
         requests.post(url, data=req_data1).json()
+
 
 def getWorkday():
     date = time.strftime('%Y-%m-%d', time.localtime())
