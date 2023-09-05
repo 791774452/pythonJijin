@@ -429,12 +429,6 @@ def check_trading_decision(list_dict):
                                           '基准价': current_price - (current_price * buy_percentage),
                                           '状态': '低估'}
                         continue
-                    target_price = standard + (standard * (buy_percentage + 0.01))
-                    if current_price >= target_price:
-                        set_data[name] = {'PE目前分位': current_pe, 'PB目前分位': current_pb,
-                                          '基准价': current_price,
-                                          '状态': '低估'}
-                        continue
                     # 基准价不变
                     set_data[name] = {'PE目前分位': current_pe, 'PB目前分位': current_pb,
                                       '基准价': standard,
