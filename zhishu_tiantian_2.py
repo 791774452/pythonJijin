@@ -139,14 +139,14 @@ def get_fund_k_history(fund_code: str, pz: int = 30) -> pd.DataFrame:
     # 请求参数
     data = {}
     url = 'http://26.push2his.eastmoney.com/api/qt/stock/kline/get?secid={secid}&ut=fa5fd1943c7b386f172d6893dbfba10b&fields1=f1%2Cf2%2Cf3%2Cf4%2Cf5%2Cf6&fields2=f51%2Cf52%2Cf53%2Cf54%2Cf55%2Cf56%2Cf57%2Cf58%2Cf59%2Cf60%2Cf61&klt=101&fqt=1&end=20500101&lmt=3600&_=1691851583454'
-    guzhi_url = 'https://datacenter.eastmoney.com/securities/api/data/v1/get?reportName=RPT_INDEXF_DETAILS_VALUE&columns=SECUCODE,SECURITY_CODE,SECURITY_NAME,PE_TTM,PB_MRQ,PE_TTM_PERCENTILE,PB_MRQ_PERCENTILE,ROE_MRQ,DIVIDEND_RATE_TTM,EX_PEG,LISTING_DATE,TRADE_DATE&filter=(SECURITY_CODE=\"{secid}\")&pageNumber=1&pageSize=200&sortTypes=-1&source=SECURITIES&client=APP'
+    guzhi_url = 'https://fundcomapi.tiantianfunds.com/mm/FundIndex/indexValueTrend?indexCode={secid}&range=10n'
     secid_value = f'{fund_code}'
     url = url.replace('{secid}', secid_value)
     guzhi_url = guzhi_url.replace('{secid}', secid_value.split(".")[1])
     # print('fund_code'+fund_code)
     json_response = requests.get(
         url, headers=EastmoneyFundHeaders, data=data).json()
-    guzhi_data = requests.get(guzhi_url).json()['result']['data'][0]
+    guzhi_data = requests.get(guzhi_url).json()['data']
     # 基金数据
     fund_data = {}
     rows = []
@@ -158,9 +158,20 @@ def get_fund_k_history(fund_code: str, pz: int = 30) -> pd.DataFrame:
         price_list.append(float(values[2]))  # 获取索引为2的值，并将其转换为浮点数
     # 获取当前价格
     fund_data['price'] = price_list[-1]
+    # 计算pe分位数
+    pe_lsit = []
+    for stock in guzhi_data:
+        pe_lsit.append(float(stock['PETTM']))
+    current_pe = pe_lsit[-1]
+    pe_lsit.sort()
+    price_list.sort()
+    chance = np.percentile(pe_lsit, 30)
+    danger = np.percentile(pe_lsit, 50)
     # pe30分位数
-    fund_data['PE_TTM_PERCENTILE'] = guzhi_data['PE_TTM_PERCENTILE']
-    fund_data['PB_MRQ_PERCENTILE'] = guzhi_data  ['PB_MRQ_PERCENTILE']
+    fund_data['standard'] = np.percentile(price_list, 30)  # 指数30分位
+    fund_data['chance'] = chance
+    fund_data['current_pe'] = current_pe
+    fund_data['danger'] = danger
     # 涨跌幅
     drop = 0
     for stock in reversed(datas):
@@ -408,11 +419,11 @@ def check_trading_decision(list_dict):
                 # 当前价格
                 current_price = data_dict['price']
                 # 当前pe
-                current_pe = data_dict['PE_TTM_PERCENTILE']
+                current_pe = data_dict['current_pe']
                 # 买入分界线
-                buy_threshold = 25
+                buy_threshold = data_dict['chance']
                 # 卖出分界线
-                sell_threshold = 50
+                sell_threshold = data_dict['danger']
                 standard = current_price
 
                 name = data_dict['data'][0]['基金名称']
@@ -423,16 +434,16 @@ def check_trading_decision(list_dict):
                     target_price = standard - (standard * buy_percentage)
                     if current_price <= target_price:
                         qmsg_data['买入'].append(name)
-                        set_data[name] = {'目前分位': current_pe,
+                        set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold, '目前分位': current_pe,
                                           '基准价': current_price - (current_price * buy_percentage)}
                         continue
                     target_price = standard + (standard * (buy_percentage + 0.01))
                     if current_price >= target_price:
-                        set_data[name] = {'目前分位': current_pe,
+                        set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold, '目前分位': current_pe,
                                           '基准价': current_price + (current_price * buy_percentage)}
                         continue
                     # 基准价不变
-                    set_data[name] = {'目前分位': current_pe,
+                    set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold, '目前分位': current_pe,
                                       '基准价': standard}
                 elif current_pe >= sell_threshold:
 
@@ -440,25 +451,25 @@ def check_trading_decision(list_dict):
                     if current_price >= target_price:
                         qmsg_data['卖出'].append(name)
                         # 卖出这基准价位30分位值
-                        set_data[name] = {'目前分位': current_pe,
+                        set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold, '目前分位': current_pe,
                                           '基准价': current_price + (current_price * buy_percentage)}
                         continue
                     # 基准价不变
-                    set_data[name] = {'目前分位': current_pe,
+                    set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold, '目前分位': current_pe,
                                       '基准价': standard}
     else:
         for data_dict in list_dict:
-            # 当前价格
-            standard_price = data_dict['price']
+            # 基准价格30分位
+            standard_price = data_dict['standard']
             # 当前pe
-            current_pe = data_dict['PE_TTM_PERCENTILE']
+            current_pe = data_dict['current_pe']
             # 买入分界线
-            buy_threshold = 25
+            buy_threshold = data_dict['chance']
             # 卖出分界线
-            sell_threshold = 50
+            sell_threshold = data_dict['danger']
 
             name = data_dict['data'][0]['基金名称']
-            set_data[name] = {'目前分位': current_pe,
+            set_data[name] = {'危险分位': sell_threshold, '机会分位': buy_threshold, '目前分位': current_pe,
                               '基准价': standard_price}
 
     with open(filename, 'w', encoding='utf-8') as file_obj:
@@ -525,7 +536,7 @@ if __name__ == "__main__":
 
     # 配置基本的日志输出格式
     logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s')
-    # get_data()
+    get_data()
     # getWorkday()
     scheduler = BlockingScheduler(timezone="Asia/Shanghai")
     try:
