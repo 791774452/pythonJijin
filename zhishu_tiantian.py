@@ -160,7 +160,7 @@ def get_fund_k_history(fund_code: str, pz: int = 30) -> pd.DataFrame:
     fund_data['price'] = price_list[-1]
     # pe30分位数
     fund_data['PE_TTM_PERCENTILE'] = guzhi_data['PE_TTM_PERCENTILE']
-    fund_data['PB_MRQ_PERCENTILE'] = guzhi_data  ['PB_MRQ_PERCENTILE']
+    fund_data['PB_MRQ_PERCENTILE'] = guzhi_data['PB_MRQ_PERCENTILE']
     # 涨跌幅
     drop = 0
     for stock in reversed(datas):
@@ -407,10 +407,12 @@ def check_trading_decision(list_dict):
             for data_dict in list_dict:
                 # 当前价格
                 current_price = data_dict['price']
-                # 当前pe
+                # 当前pe百分位
                 current_pe = data_dict['PE_TTM_PERCENTILE']
+                # 当前pb百分位
+                current_pb = data_dict['PB_MRQ_PERCENTILE']
                 # 买入分界线
-                buy_threshold = 25
+                buy_threshold = 20
                 # 卖出分界线
                 sell_threshold = 50
                 standard = current_price
@@ -419,46 +421,47 @@ def check_trading_decision(list_dict):
                 if name in set_data:
                     standard = set_data[name]['基准价']
 
-                if current_pe <= buy_threshold:
+                if current_pe <= buy_threshold and (current_pe < 30 or current_pb < 30):
                     target_price = standard - (standard * buy_percentage)
                     if current_price <= target_price:
                         qmsg_data['买入'].append(name)
-                        set_data[name] = {'目前分位': current_pe,
-                                          '基准价': current_price - (current_price * buy_percentage)}
+                        set_data[name] = {'PE目前分位': current_pe, 'PB目前分位': current_pb,
+                                          '基准价': current_price - (current_price * buy_percentage),
+                                          '状态': '低估'}
                         continue
                     target_price = standard + (standard * (buy_percentage + 0.01))
                     if current_price >= target_price:
-                        set_data[name] = {'目前分位': current_pe,
-                                          '基准价': current_price + (current_price * buy_percentage)}
+                        set_data[name] = {'PE目前分位': current_pe, 'PB目前分位': current_pb,
+                                          '基准价': current_price,
+                                          '状态': '低估'}
                         continue
                     # 基准价不变
-                    set_data[name] = {'目前分位': current_pe,
-                                      '基准价': standard}
-                elif current_pe >= sell_threshold:
-
-                    target_price = standard + (standard * sell_percentage)
-                    if current_price >= target_price:
-                        qmsg_data['卖出'].append(name)
-                        # 卖出这基准价位30分位值
-                        set_data[name] = {'目前分位': current_pe,
-                                          '基准价': current_price + (current_price * buy_percentage)}
-                        continue
+                    set_data[name] = {'PE目前分位': current_pe, 'PB目前分位': current_pb,
+                                      '基准价': standard,
+                                      '状态': '低估'}
+                else:
                     # 基准价不变
-                    set_data[name] = {'目前分位': current_pe,
-                                      '基准价': standard}
+                    set_data[name] = {'PE目前分位': current_pe, 'PB目前分位': current_pb, '基准价': standard,
+                                      '状态': '考虑卖出'}
+                    if current_pe >= sell_threshold:
+                        target_price = standard + (standard * sell_percentage)
+                        if current_price >= target_price:
+                            qmsg_data['卖出'].append(name)
+                            # 卖出这基准价位30分位值
+                            set_data[name] = {'PE目前分位': current_pe, 'PB目前分位': current_pb,
+                                              '基准价': current_price,
+                                              '状态': '卖出'}
+                            continue
     else:
         for data_dict in list_dict:
             # 当前价格
             standard_price = data_dict['price']
-            # 当前pe
+            # 当前pe百分位
             current_pe = data_dict['PE_TTM_PERCENTILE']
-            # 买入分界线
-            buy_threshold = 25
-            # 卖出分界线
-            sell_threshold = 50
-
+            # 当前pb百分位
+            current_pb = data_dict['PB_MRQ_PERCENTILE']
             name = data_dict['data'][0]['基金名称']
-            set_data[name] = {'目前分位': current_pe,
+            set_data[name] = {'PE目前分位': current_pe, 'PB目前分位': current_pb,
                               '基准价': standard_price}
 
     with open(filename, 'w', encoding='utf-8') as file_obj:
