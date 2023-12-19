@@ -105,7 +105,7 @@ def sendMail(message, Subject, sender_show, recipient_show, to_addrs, cc_show=''
     '''
     # 填写真实的发邮件服务器用户名、密码
     user = '1784306049@qq.com'
-    password = 'xfwyotvnwohlciif'
+    password = 'pohvestjfypifcdg'
     # 邮件内容
     msg = MIMEMultipart()
     msg.attach(MIMEText(message, 'html', _charset="utf-8"))
