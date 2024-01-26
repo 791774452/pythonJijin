@@ -1,10 +1,7 @@
 #!/bin/bash
+echo "140.82.112.4 github.com" >> /etc/hosts
 
 cd /app
 git pull origin master
 
 python3 zhishu_tiantian.py
-
-git add data.json
-git commit -m "更新基准价"
-git push origin master
