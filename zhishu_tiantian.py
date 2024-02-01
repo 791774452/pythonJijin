@@ -523,7 +523,7 @@ if __name__ == "__main__":
     # 配置基本的日志输出格式
     logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s')
     # get_data()
-    getWorkday()
+    # getWorkday()
     scheduler = BlockingScheduler(timezone="Asia/Shanghai")
     try:
         scheduler.add_job(getWorkday, 'cron', day_of_week='0-6', hour=14, minute=50)
@@ -531,4 +531,13 @@ if __name__ == "__main__":
         # scheduler.add_job(getWorkday, 'interval', seconds=30)
         scheduler.start()
     except Exception:
+        logging.error("定时人物发生异常")
+        url = "https://api2.pushdeer.com/message/push"
+        req_data1 = {
+            'pushkey': 'PDU1614T3Ckd0hassDatassOicfxh9YPr3uMhzRT',
+            'text': '# 定时任务发生异常',
+            'desp': ''
+        }
+        requests.post(url, data=req_data1).json()
         inputStr = input("发生异常")
+
