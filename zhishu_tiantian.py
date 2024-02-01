@@ -530,13 +530,13 @@ if __name__ == "__main__":
         # scheduler.add_job(getWorkday, 'interval', seconds=5)
         # scheduler.add_job(getWorkday, 'interval', seconds=30)
         scheduler.start()
-    except Exception:
-        logging.error("定时人物发生异常")
+    except Exception as e:
+        logging.error("定时人物发生异常",e)
         url = "https://api2.pushdeer.com/message/push"
         req_data1 = {
             'pushkey': 'PDU1614T3Ckd0hassDatassOicfxh9YPr3uMhzRT',
             'text': '# 定时任务发生异常',
-            'desp': ''
+            'desp': str(e)
         }
         requests.post(url, data=req_data1).json()
         inputStr = input("发生异常")
