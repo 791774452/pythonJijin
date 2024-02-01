@@ -523,7 +523,7 @@ if __name__ == "__main__":
     # 配置基本的日志输出格式
     logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s')
     # get_data()
-    # getWorkday()
+    getWorkday()
     scheduler = BlockingScheduler(timezone="Asia/Shanghai")
     try:
         scheduler.add_job(getWorkday, 'cron', day_of_week='0-6', hour=14, minute=50)
