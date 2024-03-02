@@ -290,11 +290,25 @@ def pe():
             TTM = str(ttm) + "(可以建仓)"
         else:
             TTM = str(ttm) + "(马上建仓)"
+            url = "https://api2.pushdeer.com/message/push"
+            req_data1 = {
+                'pushkey': 'PDU1614T3Ckd0hassDatassOicfxh9YPr3uMhzRT',
+                'text': '# 低位建仓',
+                'desp': '滚动市盈率等权平均（TTM）: ' + str(ttm)
+            }
+            requests.post(url, data=req_data1).json()
     elif ttm > 45:
         if ttm < 60:
             TTM = str(ttm) + "(观望看看)"
         else:
             TTM = str(ttm) + "(分批卖出)"
+            url = "https://api2.pushdeer.com/message/push"
+            req_data1 = {
+                'pushkey': 'PDU1614T3Ckd0hassDatassOicfxh9YPr3uMhzRT',
+                'text': '# 分批卖出',
+                'desp': '滚动市盈率等权平均（TTM）: ' + str(ttm)
+            }
+            requests.post(url, data=req_data1).json()
 
     # 获取沪深300前一天PE
     req_pe = urllib.request.Request('https://danjuanapp.com/djapi/index_eva/detail/SH000300')
@@ -531,7 +545,7 @@ if __name__ == "__main__":
         # scheduler.add_job(getWorkday, 'interval', seconds=30)
         scheduler.start()
     except Exception as e:
-        logging.error("定时人物发生异常",e)
+        logging.error("定时任务发生异常",e)
         url = "https://api2.pushdeer.com/message/push"
         req_data1 = {
             'pushkey': 'PDU1614T3Ckd0hassDatassOicfxh9YPr3uMhzRT',
