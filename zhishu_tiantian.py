@@ -181,10 +181,17 @@ def get_fund_k_history(fund_code: str, pz: int = 30) -> pd.DataFrame:
 
 
 def TTMrequests():
-    r = requests.get('https://legulegu.com/stockdata/a-ttm-lyr')
+    url = "https://legulegu.com/stockdata/a-ttm-lyr"
+
+    payload = {}
+    headers = {
+        'User-Agent': 'Apifox/1.0.0 (https://apifox.com)'
+    }
+
+    req = requests.request("GET", url, headers=headers, data=payload)
     # logging.info(len(r.json()))
     # logging.info(r.text)
-    html = r.text
+    html = req.text
     soup = BeautifulSoup(html, 'lxml')
 
     # price_box = soup.find("div", "col-md-2 market-title-data-for-index-time")
