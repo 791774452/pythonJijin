@@ -224,7 +224,7 @@ def pe():
         "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Win64; x64; Trident/6.0)"
     ]
 
-    url = "https://danjuanapp.com/djapi/fundx/activity/user/vip_valuation/show/detail?source=jiucai"
+    url = "https://danjuanfunds.com/djapi/fundx/base/vip/valuation/show/detail?source=jiucai"
 
     randdom_header = random.choice(my_headers)
 
